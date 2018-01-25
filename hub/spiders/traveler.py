@@ -97,6 +97,8 @@ def create_package(response):
         'human_price': ''
     }
     data['image'] = response.xpath('//div[@class="slide"]/img/@src').extract_first()
+    data['company_name'] = 'noomsaotours'
+    data['logo'] = 'https://www.picz.in.th/images/2018/01/26/logoab.jpg'
     data['package_name'] = text[0]
     if re.search(r'\d', text[1]):
         data['travel_duration'] = int(re.search(r'\d', text[1])[0])
