@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 import scrapy
+from scrapy import Selector
 
 
 class TravelerSpider(scrapy.Spider):
@@ -16,13 +17,14 @@ class TravelerSpider(scrapy.Spider):
         else:
             self.counter += 1
             print(self.counter)
-            text = response.xpath('//div[@class="eight columns  "]/div//text()').extract()
-            data = create_package(text)
+            data = create_package(response)
             yield data
             # extract all strong tag
             #response.xpath('//span/text()').extract()
         for href in self.package_url:
             yield response.follow(href, callback=self.parse)
+            if self.counter == 5:
+                return
 
 def process_date(date_text):
     th_month = [
@@ -45,7 +47,46 @@ def process_date(date_text):
         start_travel_date = '%s-%s-%s' % (start_date, start_month, start_year)
     return start_travel_date
 
-def create_package(text):
+def process_detail(text):
+    text = text[4:]
+    text = ''.join(text)
+    return text
+
+def process_timeline(response):
+    text = response.xpath('//ul[@class="lhs"]/li').extract()
+    timeline = []
+    for day, li in enumerate(text):
+        sel = Selector(text=li)
+        detail = sel.xpath('.//span/text()').extract()[0]
+        if 'เงื่อนไข' not in detail and 'อัตราค่าบริการ' not in detail:
+            temp = {}
+            temp['day'] = day + 1
+            temp['detail'] = detail
+            temp['description'] = []
+
+            #description = []
+            sel = sel.xpath('.//table[@class="MsoTableGrid"]/tbody/tr/td | \
+                             .//table[@class="LightGrid-Accent11"]/tbody/tr/td | \
+                             .//table[@class="MsoTableLightGridAccent1"]/tbody/tr/td').extract()
+            temp2 = {}
+            for idx, row in enumerate(sel):
+                selP = Selector(text=row).xpath('//p[@class="MsoNormal"]//text()').extract()
+                selP = ''.join(selP)
+                if idx % 2 == 0:
+                    if idx != 0:
+                        #description.append(temp)
+                        temp['description'].append(temp2)
+                        temp2 = {}
+                    temp2['time'] = selP
+                else:
+                    temp2['activity'] = selP
+            #description.append(temp)
+            timeline.append(temp)
+            #timeline['description'].append(description)
+    return timeline
+
+def create_package(response):
+    text = response.xpath('//div[@class="eight columns  "]/div//text()').extract()
     text = [item for item in text if not re.match('\n.*|\r\n.*| .*|เดินทาง', item)]
     data = {
         'package_name': '',
@@ -53,8 +94,9 @@ def create_package(text):
         'travel_date': '',
         'start_travel_date': '',
         'price': 0,
-        'human_price': '' 
+        'human_price': ''
     }
+    data['image'] = response.xpath('//div[@class="slide"]/img/@src').extract_first()
     data['package_name'] = text[0]
     if re.search(r'\d', text[1]):
         data['travel_duration'] = int(re.search(r'\d', text[1])[0])
@@ -64,5 +106,7 @@ def create_package(text):
     if(re.findall(r'\d', text[3])):
         data['price'] = int(''.join(re.findall(r'\d', text[3])))
         data['human_price'] = re.search(r'\d.*', text[3])[0]
-  
+    data['detail'] = process_detail(text)
+    data['timeline'] = process_timeline(response)
+
     return data

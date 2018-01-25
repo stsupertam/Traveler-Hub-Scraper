@@ -90,4 +90,4 @@ ROBOTSTXT_OBEY = True
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 #LOG_ENABLED=False
-LOG_LEVEL='INFO'
+LOG_LEVEL='ERROR'
