@@ -2,29 +2,30 @@
 import re
 import scrapy
 from scrapy import Selector
+from hub.items import Package
 
 
 class TravelerSpider(scrapy.Spider):
     name = 'traveler'
     allowed_domains = ['noomsaotours.co.th']
     start_urls = ['https://www.noomsaotours.co.th/ทัวร์ในประเทศ']
-    package_url = []
+    package_urls = []
+    #start_urls = ['https://www.noomsaotours.co.th/%E0%B8%97%E0%B8%B1%E0%B8%A7%E0%B8%A3%E0%B9%8C%E0%B9%83%E0%B8%99%E0%B8%9B%E0%B8%A3%E0%B8%B0%E0%B9%80%E0%B8%97%E0%B8%A8/%E0%B9%80%E0%B8%AB%E0%B8%99%E0%B8%B7%E0%B8%AD/%E0%B9%81%E0%B8%99%E0%B8%9A%E0%B8%8A%E0%B8%B4%E0%B8%94%E0%B8%98%E0%B8%A3%E0%B8%A3%E0%B8%A1%E0%B8%8A%E0%B8%B2%E0%B8%95%E0%B8%B4-%E0%B8%AA%E0%B8%B1%E0%B8%A1%E0%B8%9C%E0%B8%B1%E0%B8%AA%E0%B8%8A%E0%B8%B5%E0%B8%A7%E0%B8%B4%E0%B8%95%E0%B8%99%E0%B9%88%E0%B8%B2%E0%B8%99%E0%B9%80%E0%B8%99%E0%B8%B4%E0%B8%9A%E0%B9%80%E0%B8%99%E0%B8%B4%E0%B8%9A/220']
+    #package_urls = ['https://www.noomsaotours.co.th/%E0%B8%97%E0%B8%B1%E0%B8%A7%E0%B8%A3%E0%B9%8C%E0%B9%83%E0%B8%99%E0%B8%9B%E0%B8%A3%E0%B8%B0%E0%B9%80%E0%B8%97%E0%B8%A8/%E0%B9%80%E0%B8%AB%E0%B8%99%E0%B8%B7%E0%B8%AD/%E0%B9%81%E0%B8%99%E0%B8%9A%E0%B8%8A%E0%B8%B4%E0%B8%94%E0%B8%98%E0%B8%A3%E0%B8%A3%E0%B8%A1%E0%B8%8A%E0%B8%B2%E0%B8%95%E0%B8%B4-%E0%B8%AA%E0%B8%B1%E0%B8%A1%E0%B8%9C%E0%B8%B1%E0%B8%AA%E0%B8%8A%E0%B8%B5%E0%B8%A7%E0%B8%B4%E0%B8%95%E0%B8%99%E0%B9%88%E0%B8%B2%E0%B8%99%E0%B9%80%E0%B8%99%E0%B8%B4%E0%B8%9A%E0%B9%80%E0%B8%99%E0%B8%B4%E0%B8%9A/220']
     counter = 0
 
     def parse(self, response):
-        if not self.package_url:
-            self.package_url = response.xpath('//div[@class="tour_des_first1"]/div/a/@href').extract()
+        if not self.package_urls:
+            self.package_urls = response.xpath('//div[@class="tour_des_first1"]/div/a/@href').extract()
         else:
             self.counter += 1
-            print(self.counter)
-            data = create_package(response)
-            yield data
+            print('Processing Package: ' + str(self.counter))
+            package = create_package(response)
+            yield package
             # extract all strong tag
             #response.xpath('//span/text()').extract()
-        for href in self.package_url:
+        for href in self.package_urls:
             yield response.follow(href, callback=self.parse)
-            if self.counter == 5:
-                return
 
 def process_date(date_text):
     th_month = [
@@ -34,18 +35,24 @@ def process_date(date_text):
         'ต.ค.', 'พ.ย.', 'ธ.ค.'
     ]
     start_date = ''
-    start_month = ''
-    start_year = ''
-    start_travel_date = ''
-    if re.search(r'\d\d', date_text):
-        start_date = re.search(r'\d\d', date_text)[0]
-    if re.search('[\u0E01-\u0E2E].[\u0E00-\u0E07].', date_text):
-        start_month = str(th_month.index(re.search('[\u0E01-\u0E2E].[\u0E00-\u0E07].', date_text)[0])+1)
-    if re.search(r'\d\d$', date_text):
-        start_year = str(int('25' + re.search(r'\d\d$', date_text)[0]) - 543)
-    if(start_date and start_month and start_year):
-        start_travel_date = '%s-%s-%s' % (start_date, start_month, start_year)
-    return start_travel_date
+    end_date = ''
+    month = ''
+    year = ''
+    travel_date = {'start': '', 'end': ''}
+    if re.findall(r'\d\d', date_text):
+        temp = re.findall(r'\d\d', date_text)
+        start_date = temp[0]
+        end_date = temp[1]
+        year = str(int('25' + temp[2]) - 543) 
+    if re.findall('[\u0E01-\u0E2E].\.[\u0E00-\u0E07].', date_text):
+        month = th_month.index(re.findall('[\u0E01-\u0E47].\.[\u0E00-\u0E47].', date_text)[0])+1
+    if(start_date and month and year):
+        if(start_date > end_date):
+            travel_date['start'] = '%s-%s-%s' % (start_date, str(month - 1), year)
+        else:
+            travel_date['start'] = '%s-%s-%s' % (start_date, str(month), year)
+        travel_date['end'] = '%s-%s-%s' % (end_date, str(month), year)
+    return travel_date
 
 def process_detail(text):
     text = text[4:]
@@ -64,15 +71,14 @@ def process_timeline(response):
             temp['detail'] = detail
             temp['description'] = []
 
-            #description = []
-            sel = sel.xpath('.//table[@class="MsoTableGrid"]/tbody/tr/td | \
-                             .//table[@class="LightGrid-Accent11"]/tbody/tr/td | \
-                             .//table[@class="MsoTableLightGridAccent1"]/tbody/tr/td').extract()
+            sel = sel.xpath('.//table/tbody/tr/td').extract()
             temp2 = {}
+            temp_idx = 0
             for idx, row in enumerate(sel):
+                temp_idx = idx
                 selP = Selector(text=row).xpath('//p[@class="MsoNormal"]//text()').extract()
                 selP = ''.join(selP)
-                if idx % 2 == 0:
+                if temp_idx % 2 == 0:
                     if idx != 0:
                         #description.append(temp)
                         temp['description'].append(temp2)
@@ -88,27 +94,23 @@ def process_timeline(response):
 def create_package(response):
     text = response.xpath('//div[@class="eight columns  "]/div//text()').extract()
     text = [item for item in text if not re.match('\n.*|\r\n.*| .*|เดินทาง', item)]
-    data = {
-        'package_name': '',
-        'travel_duration': 0,
-        'travel_date': '',
-        'start_travel_date': '',
-        'price': 0,
-        'human_price': ''
-    }
-    data['image'] = response.xpath('//div[@class="slide"]/img/@src').extract_first()
-    data['company_name'] = 'noomsaotours'
-    data['logo'] = 'https://www.picz.in.th/images/2018/01/26/logoab.jpg'
-    data['package_name'] = text[0]
+    package = Package()
+    package['image'] = response.xpath('//div[@class="slide"]/img/@src').extract_first()
+    package['company'] = 'noomsaotours'
+    package['logo'] = 'https://www.picz.in.th/images/2018/01/26/logoab.jpg'
+    package['package_name'] = text[0] or ''
+    package['url'] = response.request.url
     if re.search(r'\d', text[1]):
-        data['travel_duration'] = int(re.search(r'\d', text[1])[0])
+        package['travel_duration'] = int(re.search(r'\d', text[1])[0]) or ''
     if re.search(r'\d.*', text[2]):
-        data['travel_date'] = re.search(r'\d.*', text[2])[0]
-        data['start_travel_date'] = process_date(data['travel_date'])
+        package['travel_date'] = re.search(r'\d.*', text[2])[0]
+        travel_date = process_date(package['travel_date'])
+        package['start_travel_date'] = travel_date['start']
+        package['end_travel_date'] = travel_date['end']
     if(re.findall(r'\d', text[3])):
-        data['price'] = int(''.join(re.findall(r'\d', text[3])))
-        data['human_price'] = re.search(r'\d.*', text[3])[0]
-    data['detail'] = process_detail(text)
-    data['timeline'] = process_timeline(response)
+        package['price'] = int(''.join(re.findall(r'\d', text[3]))) or 0
+        package['human_price'] = re.search(r'\d.*', text[3])[0] or ''
+    package['detail'] = process_detail(text) 
+    package['timeline'] = process_timeline(response)
 
-    return data
+    return package

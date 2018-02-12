@@ -8,7 +8,21 @@
 import scrapy
 
 
-class HubItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+class Package(scrapy.Item):
+    package_name = scrapy.Field() 
+    url = scrapy.Field()
+    travel_duration = scrapy.Field()
+    travel_date = scrapy.Field()
+    start_travel_date = scrapy.Field()
+    end_travel_date = scrapy.Field()
+    price = scrapy.Field()
+    human_price = scrapy.Field()
+    image = scrapy.Field()
+    company = scrapy.Field()
+    logo = scrapy.Field()
+    detail = scrapy.Field()
+    timeline = scrapy.Field()
+    region = scrapy.Field()
+    provinces = scrapy.Field()
+    keywords = scrapy.Field()
+    timeline = scrapy.Field()
