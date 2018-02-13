@@ -14,7 +14,6 @@ BOT_NAME = 'hub'
 SPIDER_MODULES = ['hub.spiders']
 NEWSPIDER_MODULE = 'hub.spiders'
 
-ITEM_PIPELINES = ['stack.pipelines.MongoDBPipeline', ]
 ITEM_PIPELINES = {
     'hub.pipelines.MongoDBPipeline': 100,
 }

@@ -44,6 +44,6 @@ class MongoDBPipeline(object):
         item['provinces'] = list(set(item['provinces']))
         item['tags'] = list(set(item['tags']))
 
-        #self.collection.insert(dict(item))
+        self.collection.insert(dict(item))
         logging.info('Package %d added to MongoDB successfully', self.counter)
         return item
