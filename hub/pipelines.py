@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 import pymongo
 import csv
+import logging
 from scrapy.conf import settings
-from pythainlp.tokenize import word_tokenize
+from dictionary import provinces
+from dictionary import tags
+from pythainlp.tokenize import dict_word_tokenize
+#from pythainlp.tokenize import word_tokenize
 
 class MongoDBPipeline(object):
     def __init__(self):
@@ -12,57 +16,31 @@ class MongoDBPipeline(object):
         )
         db = connection[settings['MONGODB_DB']]
         self.collection = db[settings['MONGODB_COLLECTION']]
-        self.region = []
-        self.provinces = []
-        with open('provinces.csv', 'r', encoding='utf8') as file:
-            rows = csv.reader(file)
-            for item in rows:
-                self.region.append(item[0])
-                self.provinces.append(item[1])
-
-
+        self.counter = 0
 
     def process_item(self, item, spider):
+        self.counter += 1
+
         item['provinces'] = []
+        item['tags'] = []
         item['region'] = ''
+
         text = item['package_name'] + ' ' + item['detail']
         for timeline in item['timeline']:
             text = text + ' ' + timeline['detail']
-        print(text)
-        #for data in item:
-        #    if(data == 'package_name'):
-        #        words = word_tokenize(item[data])
-        #        for word in words:
-        #            if(word == 'หาดใหญ่'):
-        #                word = 'สงขลา'
-        #            if(word in self.provinces):
-        #                item['provinces'].append(word)
-        #                item['region'] = self.region[self.provinces.index(word)]
-        #    if(data == 'detail'):
-        #        words = word_tokenize(item[data])
-        #        for word in words:
-        #            if(word == 'หาดใหญ่'):
-        #                word = 'สงขลา'
-        #            if(word in self.provinces):
-        #                item['provinces'].append(word)
-        #                item['region'] = self.region[self.provinces.index(word)]
-        #    if(data == 'timeline'):
-        #        for timeline in item[data]:
-        #            words = word_tokenize(timeline['detail'])
-        #            for word in words:
-        #                if(word == 'หาดใหญ่'):
-        #                    word = 'สงขลา'
-        #                if(word in self.provinces):
-        #                    item['provinces'].append(word)
-        #                    item['region'] = self.region[self.provinces.index(word)]
+        
+        item['text'] = text
+        for word in dict_word_tokenize(text, 'tag.txt', 'mm'):
+            if(word == 'หาดใหญ่'):
+                word = 'สงขลา'
+            if(word in provinces):
+                item['provinces'].append(word)
+                item['region'] = provinces[word]
+            if(word in tags):
+                item['tags'].append(word)
+        item['provinces'] = list(set(item['provinces']))
+        item['tags'] = list(set(item['tags']))
 
-                    #words = word_tokenize(timeline['detail'])
-                    #print('-------------------')
-                    #print(words)
-                    #print(timeline['detail'])
-
-        #if valid:
-        #    self.collection.insert(dict(item))
-        #    log.msg("Question added to MongoDB database!",
-        #            level=log.DEBUG, spider=spider)
+        self.collection.insert(dict(item))
+        logging.info('Package %d added to MongoDB successfully', self.counter)
         return item

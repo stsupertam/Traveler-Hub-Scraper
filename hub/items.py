@@ -24,5 +24,6 @@ class Package(scrapy.Item):
     timeline = scrapy.Field()
     region = scrapy.Field()
     provinces = scrapy.Field()
-    keywords = scrapy.Field()
     timeline = scrapy.Field()
+    tags = scrapy.Field()
+    text = scrapy.Field()
