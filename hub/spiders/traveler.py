@@ -46,12 +46,12 @@ def process_date(date_text):
     if re.findall('[ก-เ].*\.[ก-ฮ].', date_text):
         month = th_month.index(re.findall('[ก-เ].*\.[ก-ฮ].', date_text)[0]) + 1
     if(start_date and month and year):
-        start = datetime.datetime.strptime(('%s-%s-%s' % (start_date, str(month - 1), year)), '%d-%m-%Y')
+        start = datetime.datetime.strptime(('%s-%s-%s' % (start_date, str(month), year)), '%d-%m-%Y')
         if(start_date > end_date):
             travel_date['start'] = start
         else:
             travel_date['start'] = start
-        travel_date['end'] = datetime.datetime.strptime(('%s-%s-%s' % (end_date, str(month - 1), year)), '%d-%m-%Y')
+        travel_date['end'] = datetime.datetime.strptime(('%s-%s-%s' % (end_date, str(month), year)), '%d-%m-%Y')
     return travel_date
 
 def process_timeline(response):
