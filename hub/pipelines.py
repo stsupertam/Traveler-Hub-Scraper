@@ -5,16 +5,34 @@ import logging
 from scrapy.conf import settings
 from dictionary import *
 from pythainlp.tokenize import dict_word_tokenize
+from sshtunnel import SSHTunnelForwarder
+from pydispatch import dispatcher
+from scrapy import signals
 
 class MongoDBPipeline(object):
     def __init__(self):
-        connection = pymongo.MongoClient(
-            settings['MONGODB_SERVER'],
-            settings['MONGODB_PORT']
-        )
-        db = connection[settings['MONGODB_DB']]
+        if(settings['ENV'] == 'Development'):
+            client = pymongo.MongoClient(
+                settings['MONGODB_LOCAL'],
+                settings['MONGODB_PORT']
+            )
+        else:
+            self.server = SSHTunnelForwarder(
+                settings['MONGODB_SERVER'],
+                ssh_username=settings['SSH_USER'],
+                ssh_password=settings['SSH_PASS'],
+                remote_bind_address=('127.0.0.1', 27017)
+            )
+            self.server.start()
+            client = pymongo.MongoClient('127.0.0.1', self.server.local_bind_port) # server.local_bind_port is assigned local port
+        db = client[settings['MONGODB_DB']]
+        dispatcher.connect(self.close_spider, signals.spider_closed) # NEW
         self.collection = db[settings['MONGODB_COLLECTION']]
         self.counter = 0
+
+    def close_spider(self, spider):
+        if(settings['ENV'] != 'Development'):
+            self.server.close()
 
     def process_item(self, item, spider):
         self.counter += 1
@@ -46,4 +64,6 @@ class MongoDBPipeline(object):
 
         self.collection.insert(dict(item))
         logging.info('Package %d added to MongoDB successfully', self.counter)
+        #if(signals.engine_stopped()):
+        #    server.close()
         return item

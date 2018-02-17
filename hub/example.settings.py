@@ -18,9 +18,13 @@ ITEM_PIPELINES = {
     'hub.pipelines.MongoDBPipeline': 100,
 }
 MONGODB_SERVER = 'localhost'
+MONGODB_LOCAL = 'localhost'
 MONGODB_PORT = 27017
-MONGODB_DB = 'testdb'
-MONGODB_COLLECTION = 'packages'
+MONGODB_DB = ''
+MONGODB_COLLECTION = ''
+SSH_USER = ''
+SSH_PASSWORD = ''
+ENV = 'Development'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'hub (+http://www.yourdomain.com)'
