@@ -50,7 +50,7 @@ class MongoDBPipeline(object):
         text = text.replace('จ.', '').replace('จังหวัด','').replace('ฯ', '').replace('อ.', '').replace('"', '')
         text = dict_word_tokenize(text, 'dictionary/word_cut.txt', 'mm')
         text = [word for word in text if word not in stopwords]
-        item['text'] = text
+        text = list(set(text))
         for word in text:
             if(word in fix):
                 word = fix[word]
@@ -59,6 +59,7 @@ class MongoDBPipeline(object):
                 item['region'] = provinces[word]
             if(word in tags):
                 item['tags'].append(word)
+        item['text'] = ' '.join(text)
         item['provinces'] = list(set(item['provinces']))
         item['tags'] = list(set(item['tags']))
 
