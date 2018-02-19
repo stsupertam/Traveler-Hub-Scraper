@@ -97,16 +97,16 @@ def create_package(response):
     package['logo'] = 'https://www.picz.in.th/images/2018/01/26/logoab.jpg'
     package['package_name'] = info[0] or ''
     package['url'] = response.request.url
-    if re.search(r'\d', info[1]):
-        package['travel_duration'] = int(re.search(r'\d', info[1])[0]) or ''
-    if re.search(r'\d.*', info[2]):
-        package['travel_date'] = re.search(r'\d.*', info[2])[0]
+    if re.findall(r'\d', info[1]):
+        package['travel_duration'] = int(re.findall(r'\d', info[1])[0]) or ''
+    if re.findall(r'\d.*', info[2]):
+        package['travel_date'] = re.findall(r'\d.*', info[2])[0]
         travel_date = process_date(package['travel_date'])
         package['start_travel_date'] = travel_date['start']
         package['end_travel_date'] = travel_date['end']
     if(re.findall(r'\d', info[3])):
         package['price'] = int(''.join(re.findall(r'\d', info[3]))) or 0
-        package['human_price'] = re.search(r'\d.*', info[3])[0] or ''
+        package['human_price'] = re.findall(r'\d.*', info[3])[0] or ''
     package['detail'] =  ' '.join(detail[1:])
     package['timeline'] = process_timeline(response)
 
