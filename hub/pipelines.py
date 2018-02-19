@@ -2,8 +2,10 @@
 import pymongo
 import csv
 import logging
+import os
 from scrapy.conf import settings
 from dictionary import *
+from pythainlp.tokenize import word_tokenize
 from pythainlp.tokenize import dict_word_tokenize
 from sshtunnel import SSHTunnelForwarder
 from pydispatch import dispatcher
@@ -42,15 +44,18 @@ class MongoDBPipeline(object):
         item['region'] = ''
 
         text = item['package_name'] + ' ' + item['detail']
+        with open('../dictionary/word_cut.txt', 'r', encoding='utf8') as file:
+            file = file.readlines()
+        longest_word = len(max(file, key=len))
         for timeline in item['timeline']:
             text = text + ' ' + timeline['detail']
             for des in timeline['description']:
                 text = text + ' ' + des['activity']
         
         text = text.replace('จ.', '').replace('จังหวัด','').replace('ฯ', '').replace('อ.', '').replace('"', '')
-        text = dict_word_tokenize(text, 'dictionary/word_cut.txt', 'mm')
+        text = dict_word_tokenize(text, '../dictionary/word_cut.txt', 'mm')
         text = [word for word in text if word not in stopwords]
-        text = list(set(text))
+        cut_text = []
         for word in text:
             if(word in fix):
                 word = fix[word]
@@ -59,12 +64,15 @@ class MongoDBPipeline(object):
                 item['region'] = provinces[word]
             if(word in tags):
                 item['tags'].append(word)
-        item['text'] = ' '.join(text)
+            if(len(word) > longest_word):
+                cut_text = cut_text + word_tokenize(word, 'deepcut')
+            else:
+                cut_text.append(word)
+
+        item['text'] = cut_text
         item['provinces'] = list(set(item['provinces']))
         item['tags'] = list(set(item['tags']))
 
         self.collection.insert(dict(item))
         logging.info('Package %d added to MongoDB successfully', self.counter)
-        #if(signals.engine_stopped()):
-        #    server.close()
         return item
