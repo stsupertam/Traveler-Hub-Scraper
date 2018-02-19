@@ -44,7 +44,7 @@ class MongoDBPipeline(object):
         item['region'] = ''
 
         text = item['package_name'] + ' ' + item['detail']
-        with open('../dictionary/word_cut.txt', 'r', encoding='utf8') as file:
+        with open('dictionary/word_cut.txt', 'r', encoding='utf8') as file:
             file = file.readlines()
         longest_word = len(max(file, key=len))
         for timeline in item['timeline']:
@@ -53,8 +53,7 @@ class MongoDBPipeline(object):
                 text = text + ' ' + des['activity']
         
         text = text.replace('จ.', '').replace('จังหวัด','').replace('ฯ', '').replace('อ.', '').replace('"', '')
-        text = dict_word_tokenize(text, '../dictionary/word_cut.txt', 'mm')
-        text = [word for word in text if word not in stopwords]
+        text = dict_word_tokenize(text, 'dictionary/word_cut.txt', 'mm')
         cut_text = []
         for word in text:
             if(word in fix):
@@ -65,9 +64,12 @@ class MongoDBPipeline(object):
             if(word in tags):
                 item['tags'].append(word)
             if(len(word) > longest_word):
+                word = word_tokenize(word, 'deepcut')
+                word = [temp for temp in word if temp not in stopwords]
                 cut_text = cut_text + word_tokenize(word, 'deepcut')
             else:
-                cut_text.append(word)
+                if(word not in stopwords):
+                    cut_text.append(word)
 
         item['text'] = cut_text
         item['provinces'] = list(set(item['provinces']))
