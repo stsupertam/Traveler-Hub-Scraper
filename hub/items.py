@@ -27,3 +27,4 @@ class Package(scrapy.Item):
     timeline = scrapy.Field()
     tags = scrapy.Field()
     text = scrapy.Field()
+    travel_types = scrapy.Field()
