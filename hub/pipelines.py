@@ -40,6 +40,7 @@ class MongoDBPipeline(object):
         self.counter += 1
 
         item['provinces'] = []
+        item['travel_type'] = []
         item['tags'] = []
         item['region'] = ''
 
@@ -61,8 +62,9 @@ class MongoDBPipeline(object):
             if(word in provinces):
                 item['provinces'].append(word)
                 item['region'] = provinces[word]
-            if(word in tags):
+            if(word in travel_types):
                 item['tags'].append(word)
+                item['travel_type'] = travel_types[word]
             if(len(word) > longest_word):
                 word = word_tokenize(word, 'deepcut')
                 word = [temp for temp in word if temp not in stopwords]
