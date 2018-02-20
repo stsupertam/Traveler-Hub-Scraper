@@ -40,7 +40,7 @@ class MongoDBPipeline(object):
         self.counter += 1
 
         item['provinces'] = []
-        item['travel_type'] = []
+        item['travel_types'] = []
         item['tags'] = []
         item['region'] = ''
 
