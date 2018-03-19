@@ -6,8 +6,8 @@ from scrapy import Selector
 from hub.items import Package
 
 
-class TravelerSpider(scrapy.Spider):
-    name = 'traveler'
+class NoomsaotoursSpider(scrapy.Spider):
+    name = 'noomsaotours'
     allowed_domains = ['noomsaotours.co.th']
     start_urls = ['https://www.noomsaotours.co.th/ทัวร์ในประเทศ']
     package_urls = []
@@ -40,17 +40,21 @@ def process_date(date_text):
     travel_date = {'start': '', 'end': ''}
     if re.findall(r'\d\d', date_text):
         temp = re.findall(r'\d\d', date_text)
-        start_date = temp[0]
-        end_date = temp[1]
-        year = str(int('25' + temp[2]) - 543) 
+        if(len(temp) == 2):
+            start_date = temp[0]
+            end_date = temp[0]
+        else:
+            start_date = temp[0]
+            end_date = temp[1]
+        year = str(int('25' + temp[-1]) - 543) 
     if re.findall('[ก-เ].*\.[ก-ฮ].', date_text):
         month = th_month.index(re.findall('[ก-เ].*\.[ก-ฮ].', date_text)[0]) + 1
     if(start_date and month and year):
-        start = datetime.datetime.strptime(('%s-%s-%s' % (start_date, str(month), year)), '%d-%m-%Y')
         if(start_date > end_date):
-            travel_date['start'] = start
+            start = datetime.datetime.strptime(('%s-%s-%s' % (start_date, str(month - 1), year)), '%d-%m-%Y')
         else:
-            travel_date['start'] = start
+            start = datetime.datetime.strptime(('%s-%s-%s' % (start_date, str(month), year)), '%d-%m-%Y')
+        travel_date['start'] = start
         travel_date['end'] = datetime.datetime.strptime(('%s-%s-%s' % (end_date, str(month), year)), '%d-%m-%Y')
     return travel_date
 
@@ -97,16 +101,18 @@ def create_package(response):
     package['logo'] = 'https://www.picz.in.th/images/2018/01/26/logoab.jpg'
     package['package_name'] = info[0] or ''
     package['url'] = response.request.url
+    print(package['url'])
     if re.findall(r'\d', info[1]):
-        package['travel_duration'] = int(re.findall(r'\d', info[1])[0]) or ''
+        package['travel_duration'] = int(re.findall(r'\d', info[1])[0]) or 'N/A'
     if re.findall(r'\d.*', info[2]):
+        print(re.findall(r'\d.*', info[2])[0])
         package['travel_date'] = re.findall(r'\d.*', info[2])[0]
         travel_date = process_date(package['travel_date'])
         package['start_travel_date'] = travel_date['start']
         package['end_travel_date'] = travel_date['end']
     if(re.findall(r'\d', info[3])):
-        package['price'] = int(''.join(re.findall(r'\d', info[3]))) or 0
-        package['human_price'] = re.findall(r'\d.*', info[3])[0] or ''
+        package['price'] = int(''.join(re.findall(r'\d', info[3]))) or -1
+        package['human_price'] = re.findall(r'\d.*', info[3])[0] or 'N/A'
     package['detail'] =  ' '.join(detail[1:])
     package['timeline'] = process_timeline(response)
 
