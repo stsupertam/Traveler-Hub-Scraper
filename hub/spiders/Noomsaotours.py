@@ -62,8 +62,9 @@ def process_timeline(response):
     text = response.xpath('//ul[@class="lhs"]/li').extract()
     timeline = []
     for day, li in enumerate(text):
+        li = li.replace('\n', '').replace('\xa0', '')
         sel = Selector(text=li)
-        detail = sel.xpath('.//span/text()').extract()[0]
+        detail = sel.xpath('.//span/text()').extract()[0].strip()
         if 'เงื่อนไข' not in detail and 'อัตราค่าบริการ' not in detail:
             temp = {}
             temp['day'] = day + 1
@@ -76,7 +77,7 @@ def process_timeline(response):
             for idx, row in enumerate(sel):
                 temp_idx = idx
                 selP = Selector(text=row).xpath('//p[@class="MsoNormal"]//text()').extract()
-                selP = ''.join(selP)
+                selP = ''.join(selP).strip()
                 if temp_idx % 2 == 0:
                     if idx != 0:
                         #description.append(temp)
@@ -85,9 +86,8 @@ def process_timeline(response):
                     temp2['time'] = selP
                 else:
                     temp2['activity'] = selP
-            #description.append(temp)
+            temp['description'].append(temp2)
             timeline.append(temp)
-            #timeline['description'].append(description)
     return timeline
 
 def create_package(response):
