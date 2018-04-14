@@ -9,28 +9,26 @@ from hub.items import Package
 class NoomsaotoursSpider(scrapy.Spider):
     name = 'noomsaotours'
     allowed_domains = ['noomsaotours.co.th']
-    #start_urls = ['https://www.noomsaotours.co.th/ทัวร์ในประเทศ']
+    start_urls = ['https://www.noomsaotours.co.th/ทัวร์ในประเทศ']
     package_urls = []
-    start_urls = ['https://www.noomsaotours.co.th/%E0%B8%97%E0%B8%B1%E0%B8%A7%E0%B8%A3%E0%B9%8C%E0%B9%83%E0%B8%99%E0%B8%9B%E0%B8%A3%E0%B8%B0%E0%B9%80%E0%B8%97%E0%B8%A8/%E0%B8%AD%E0%B8%B5%E0%B8%AA%E0%B8%B2%E0%B8%99/%E0%B9%82%E0%B8%9B%E0%B8%A3%E0%B9%81%E0%B8%81%E0%B8%A3%E0%B8%A1%E0%B8%95%E0%B8%B2%E0%B8%A1%E0%B8%A3%E0%B8%AD%E0%B8%A2%E0%B8%9A%E0%B8%B1%E0%B9%89%E0%B8%87%E0%B9%84%E0%B8%9F%E0%B8%9E%E0%B8%8D%E0%B8%B2%E0%B8%99%E0%B8%B2%E0%B8%84-/12']
+    #start_urls = ['https://www.noomsaotours.co.th/%E0%B8%97%E0%B8%B1%E0%B8%A7%E0%B8%A3%E0%B9%8C%E0%B9%83%E0%B8%99%E0%B8%9B%E0%B8%A3%E0%B8%B0%E0%B9%80%E0%B8%97%E0%B8%A8/%E0%B8%81%E0%B8%A5%E0%B8%B2%E0%B8%87/%E0%B8%97%E0%B9%88%E0%B8%AD%E0%B8%87%E0%B8%AD%E0%B8%94%E0%B8%B5%E0%B8%95%E0%B9%81%E0%B8%9C%E0%B9%88%E0%B8%99%E0%B8%94%E0%B8%B4%E0%B8%99%E0%B8%97%E0%B8%AD%E0%B8%87-%E0%B8%A2%E0%B9%89%E0%B8%AD%E0%B8%99%E0%B8%A3%E0%B8%AD%E0%B8%A2%E0%B8%A1%E0%B8%AD%E0%B8%87%E0%B9%80%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B8%87%E0%B8%AA%E0%B8%A1%E0%B9%80%E0%B8%94%E0%B9%87%E0%B8%88%E0%B8%9E%E0%B8%A3%E0%B8%B0%E0%B8%99%E0%B8%B2%E0%B8%A3%E0%B8%B2%E0%B8%A2%E0%B8%93%E0%B9%8C-/239']
     #package_urls = ['https://www.noomsaotours.co.th/%E0%B8%97%E0%B8%B1%E0%B8%A7%E0%B8%A3%E0%B9%8C%E0%B9%83%E0%B8%99%E0%B8%9B%E0%B8%A3%E0%B8%B0%E0%B9%80%E0%B8%97%E0%B8%A8/%E0%B9%83%E0%B8%95%E0%B9%89/%E0%B9%80%E0%B8%95%E0%B9%87%E0%B8%A1%E0%B8%AD%E0%B8%B4%E0%B9%88%E0%B8%A1%E0%B8%81%E0%B8%B1%E0%B8%9A%E0%B8%A1%E0%B8%B1%E0%B8%A5%E0%B8%94%E0%B8%B5%E0%B8%9F%E0%B8%AA%E0%B9%8C%E0%B9%80%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B8%87%E0%B9%84%E0%B8%97%E0%B8%A2-%E0%B8%95%E0%B8%B0%E0%B8%A3%E0%B8%B8%E0%B9%80%E0%B8%95%E0%B8%B2-%E0%B8%AB%E0%B8%A5%E0%B8%B5%E0%B9%80%E0%B8%9B%E0%B9%8A%E0%B8%B0-%E0%B8%AB%E0%B8%B2%E0%B8%94%E0%B9%83%E0%B8%AB%E0%B8%8D%E0%B9%88/207']
     counter = 0
 
-    def parse(self, response):
-        package = create_package(response)
-        yield package
-
-
-
     #def parse(self, response):
-    #    if not self.package_urls:
-    #        self.package_urls = response.xpath('//div[@class="tour_des_first1"]/div/a/@href').extract()
-    #    else:
-    #        self.counter += 1
-    #        print('Processing Package: ' + str(self.counter))
-    #        package = create_package(response)
-    #        yield package
-    #    for href in self.package_urls:
-    #        yield response.follow(href, callback=self.parse)
+    #    package = create_package(response)
+    #    yield package
+
+    def parse(self, response):
+        if not self.package_urls:
+            self.package_urls = response.xpath('//div[@class="tour_des_first1"]/div/a/@href').extract()
+        else:
+            self.counter += 1
+            print('Processing Package: ' + str(self.counter))
+            package = create_package(response)
+            yield package
+        for href in self.package_urls:
+            yield response.follow(href, callback=self.parse)
 
 def process_date(date_text):
     th_month = [
@@ -111,21 +109,29 @@ def create_package(response):
     info = [item for item in info if not re.match('\n.*|\r\n.*| .*|เดินทาง', item)]
     detail = [item for item in detail if not re.match('\n.*|\r\n.*| .*|เดินทาง', item)]
     package = Package()
-    package['image'] = response.xpath('//div[@class="slide"]/img/@src').extract_first()
+    #package['image'] = response.xpath('//div[@class="slide"]/img/@src').extract_first()
+    package['image_urls'] = response.xpath('//div[@class="popup-gallery"]//a/@href').extract()
     package['company'] = 'noomsaotours'
     package['logo'] = 'https://www.picz.in.th/images/2018/01/26/logoab.jpg'
-    package['package_name'] = info[0] or ''
+    package['package_name'] = info[0]
     package['url'] = response.request.url
+
     if re.findall(r'\d', info[1]):
         package['travel_duration'] = int(re.findall(r'\d', info[1])[0])
+
     if re.findall(r'\d.*', info[2]):
-        package['travel_date'] = re.findall(r'\d.*', info[2])[0] or 'N/A'
+        package['travel_date'] = re.findall(r'\d.*', info[2])[0]
         travel_date = process_date(package['travel_date'])
         package['start_travel_date'] = travel_date['start']
         package['end_travel_date'] = travel_date['end']
+    else:
+        package['travel_date'] = 'N/A'
+
     if(re.findall(r'\d', info[3])):
-        package['price'] = int(''.join(re.findall(r'\d', info[3]))) or -1
-        package['human_price'] = re.findall(r'\d.*', info[3])[0] or 'N/A'
+        package['price'] = int(''.join(re.findall(r'\d', info[3])))
+        package['human_price'] = re.findall(r'\d.*', info[3])[0]
+    else:
+        package['human_price'] = 'N/A'
     package['detail'] =  ' '.join(detail[1:])
     package['timeline'] = process_timeline(response)
 

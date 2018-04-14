@@ -98,7 +98,7 @@ def create_package(response):
     package['detail'] = detail.replace(':\r\n', '').lstrip()
     package['image'] = f'http://www.tourtooktee.com{image[1:]}'
     package['company'] = 'tourtooktee'
-    package['logo'] = 'http://supertam.xyz:5000/images/image-1521468799332.jpg'
+    package['logo'] = 'http://api.travelerhub.xyz/images/image-1523272148607.jpg'
     package['package_name'] = url.split('/')[-1] or ''
     package['url'] = response.request.url
     package['timeline'] = process_timeline(response)
