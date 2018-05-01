@@ -90,15 +90,15 @@ def process_timeline(response):
 def create_package(response):
     price = response.xpath('//*[@id="programtour_each_inner"]/p[3]/text()').extract_first()
     detail =  response.xpath('//*[@id="programtour_each_inner"]/p[2]/text()').extract_first()
-    image = response.xpath('//*[@id="programtour_each_inner"]/div[3]/img/@src').extract_first()
+    image = response.xpath('//*[@id="gallery_list_img"]//a/@href').extract()
     url = urllib.parse.unquote(response.request.url)
     #travel_date = response.xpath('//*[@id="programtour_each_inner"]/p[4]/text()').extract_first()
 
     package = Package()
     package['detail'] = detail.replace(':\r\n', '').lstrip()
-    package['image'] = f'http://www.tourtooktee.com{image[1:]}'
+    package['image_urls'] = image
     package['company'] = 'tourtooktee'
-    package['logo'] = 'http://api.travelerhub.xyz/images/image-1523272148607.jpg'
+    package['logo'] = '/images/image-1525168075249.jpg'
     package['package_name'] = url.split('/')[-1] or ''
     package['url'] = response.request.url
     package['timeline'] = process_timeline(response)

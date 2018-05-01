@@ -5,7 +5,6 @@ import datetime
 from scrapy import Selector
 from hub.items import Package
 
-
 class NoomsaotoursSpider(scrapy.Spider):
     name = 'noomsaotours'
     allowed_domains = ['noomsaotours.co.th']
@@ -112,12 +111,12 @@ def create_package(response):
     #package['image'] = response.xpath('//div[@class="slide"]/img/@src').extract_first()
     package['image_urls'] = response.xpath('//div[@class="popup-gallery"]//a/@href').extract()
     package['company'] = 'noomsaotours'
-    package['logo'] = 'https://www.picz.in.th/images/2018/01/26/logoab.jpg'
+    package['logo'] = '/images/image-1525167711446.jpg'
     package['package_name'] = info[0]
     package['url'] = response.request.url
 
     if re.findall(r'\d', info[1]):
-        package['travel_duration'] = int(re.findall(r'\d', info[1])[0])
+        package['travel_duration'] = re.findall(r'\d', info[1])[0]
 
     if re.findall(r'\d.*', info[2]):
         package['travel_date'] = re.findall(r'\d.*', info[2])[0]
